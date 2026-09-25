@@ -30,6 +30,7 @@ This file records user instructions, preferences, and teachings for reference in
 - Instructions:
   - 技术栈：Vite + React 18，纯 JSX，无路由库（App.jsx 内 stack 状态路由），无状态库（src/core/store.js 自研 useSyncExternalStore + localStorage 直写）
   - 开发服务器：npm run dev（端口 5173，已配置 allowedHosts .monkeycode-ai.online）
+  - 代码仓库：https://github.com/zhiyao-space/solid-sniffle（origin 已指向此仓库，main 分支，凭据走 git credential helper，改完代码需 commit + push 到这里）
   - 构建验证：npm run build
   - 用户原始需求文档（HTML 编码格式）已复制到 .monkeycode/docs/specs/ 下：1-ui-design / 2-settings / 3-chat / 4-forum / 5-brand-font
   - 批次计划：1 骨架锁屏导航 → 2 聊天核心 → 3 日程/主动消息/分支/朋友圈 → 4 设置中心 → 5 论坛 → 6 论坛扩展+桌面组件
