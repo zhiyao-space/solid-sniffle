@@ -33,4 +33,5 @@ This file records user instructions, preferences, and teachings for reference in
   - 代码仓库：https://github.com/zhiyao-space/solid-sniffle（origin 已指向此仓库，main 分支，凭据走 git credential helper，改完代码需 commit + push 到这里）
   - 构建验证：npm run build
   - 用户原始需求文档（HTML 编码格式）已复制到 .monkeycode/docs/specs/ 下：1-ui-design / 2-settings / 3-chat / 4-forum / 5-brand-font
-  - 批次计划：1 骨架锁屏导航 → 2 聊天核心 → 3 日程/主动消息/分支/朋友圈 → 4 设置中心 → 5 论坛 → 6 论坛扩展+桌面组件
+  - 批次计划：1 骨架锁屏导航 → 2 聊天核心 → 2.5 群聊核心（已完成：创建/调度引擎/红包投票接龙骰子/权限管理/旁观模式）→ 3 日程/主动消息/分支/朋友圈 → 4 设置中心（聊天参数/表情包管理/美化定制/记忆系统）→ 5 论坛 → 6 论坛扩展+桌面组件
+  - 群聊方案中延后到第四批的部分：表情包消息（依赖第四批表情包管理）、语音消息（依赖语音API）、记忆自动总结/手动总结/记忆注入条数（属记忆系统）、美化定制（壁纸/气泡样式/头像形状等属美化中心）；延后不做：角色主动拉人踢人/改自己群昵称（AI自主指令，复杂度高）、红包雨/放烟花/角色卡接龙（可选后续）
