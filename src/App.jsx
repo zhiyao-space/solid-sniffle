@@ -17,6 +17,9 @@ import CharacterDetail from './screens/CharacterDetail'
 import Chat from './screens/Chat'
 import ApiConfig from './screens/ApiConfig'
 import Wallet from './screens/Wallet'
+import GroupForm from './screens/GroupForm'
+import GroupChat from './screens/GroupChat'
+import GroupManage from './screens/GroupManage'
 
 const CONSTRUCTION_MAP = {
   forum: { module: '论坛', icon: 'globe', batch: '第五批' },
@@ -68,6 +71,9 @@ export default function App() {
   else if (route.name === 'chat-view') screen = <Chat />
   else if (route.name === 'api-config') screen = <ApiConfig />
   else if (route.name === 'wallet') screen = <Wallet />
+  else if (route.name === 'group-form') screen = <GroupForm />
+  else if (route.name === 'group-chat') screen = <GroupChat />
+  else if (route.name === 'group-manage') screen = <GroupManage />
   else if (CONSTRUCTION_MAP[route.name]) {
     const meta = CONSTRUCTION_MAP[route.name]
     screen = <Construction key={route.name} module={meta.module} icon={meta.icon} batch={meta.batch} />

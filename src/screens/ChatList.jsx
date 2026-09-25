@@ -15,11 +15,39 @@ export function CharAvatar({ char, size = 44 }) {
   )
 }
 
+function GroupAvatar({ group, chars, size = 44 }) {
+  if (group.avatar) {
+    return <img className="avatar-img" src={group.avatar} alt={group.name} style={{ width: size, height: size }} />
+  }
+  const ms = group.memberIds.map((id) => chars.find((c) => c.id === id)).filter(Boolean).slice(0, 4)
+  return (
+    <span className="avatar avatar-fallback group-mosaic" style={{ width: size, height: size }}>
+      {ms.map((c) => (c.avatar ? <img key={c.id} src={c.avatar} alt="" /> : <i key={c.id}>{c.name.slice(0, 1)}</i>))}
+      {!ms.length && <i>?</i>}
+    </span>
+  )
+}
+
+export function groupPreview(m) {
+  switch (m.type) {
+    case 'image': return '[图片]'
+    case 'dice': return `[骰子 ${m.meta && m.meta.value}点]`
+    case 'poll': return `[投票] ${m.meta && m.meta.question}`
+    case 'relay': return `[接龙] ${m.meta && m.meta.topic}`
+    case 'redpacket': return `[红包 ¥${m.meta && m.meta.amount}]`
+    case 'transfer': return `[转账 ¥${m.meta && m.meta.amount}]`
+    case 'location': return `[位置] ${m.meta && m.meta.place}`
+    case 'ooc': return `[OOC] ${m.content}`
+    case 'sys': return m.content
+    default: return '[消息]'
+  }
+}
+
 export default function ChatList() {
   const { navigate } = useUI()
-  const { characters, chats } = useStore()
+  const { characters, chats, groups, groupChats } = useStore()
 
-  if (characters.length === 0) {
+  if (characters.length === 0 && groups.length === 0) {
     return (
       <div className="page page-enter">
         <TopNav
@@ -48,11 +76,20 @@ export default function ChatList() {
     )
   }
 
-  const rows = characters.map((c) => {
-    const msgs = (chats[c.id] && chats[c.id].messages) || []
-    const last = msgs[msgs.length - 1]
-    return { char: c, last }
-  })
+  const rows = characters
+    .map((c) => {
+      const msgs = (chats[c.id] && chats[c.id].messages) || []
+      const last = msgs[msgs.length - 1]
+      return { kind: 'dm', id: c.id, char: c, last, ts: last ? last.createdAt : 0 }
+    })
+    .concat(
+      groups.map((g) => {
+        const msgs = (groupChats[g.id] && groupChats[g.id].messages) || []
+        const last = msgs[msgs.length - 1]
+        return { kind: 'group', id: g.id, group: g, last, ts: last ? last.createdAt : 0 }
+      })
+    )
+    .sort((a, b) => b.ts - a.ts)
 
   return (
     <div className="page page-enter">
@@ -71,25 +108,54 @@ export default function ChatList() {
       />
       <div className="scroll-area page-body" style={{ gap: 8 }}>
         <div className="group-card">
-          {rows.map(({ char, last }) => (
-            <div className="row" key={char.id} onClick={() => navigate('chat-view', { charId: char.id })}>
-              <CharAvatar char={char} size={44} />
-              <div className="row-text" style={{ flex: 1 }}>
-                <div className="fs-body" style={{ color: 'var(--text-primary)' }}>{char.name}</div>
-                <div className="hint-text chat-preview">
-                  {last
-                    ? last.type === 'text' ? last.content : previewOf(last, char)
-                    : '还没聊过，点这里开始'}
+          {rows.map((r) => {
+            if (r.kind === 'dm') {
+              const { char, last } = r
+              return (
+                <div className="row" key={`dm-${char.id}`} onClick={() => navigate('chat-view', { charId: char.id })}>
+                  <CharAvatar char={char} size={44} />
+                  <div className="row-text" style={{ flex: 1 }}>
+                    <div className="fs-body" style={{ color: 'var(--text-primary)' }}>{char.name}</div>
+                    <div className="hint-text chat-preview">
+                      {last
+                        ? last.type === 'text' ? last.content : previewOf(last, char)
+                        : '还没聊过，点这里开始'}
+                    </div>
+                  </div>
+                  {last && <span className="timestamp">{fmtTime(new Date(last.createdAt))}</span>}
                 </div>
+              )
+            }
+            const { group, last } = r
+            return (
+              <div className="row" key={`grp-${group.id}`} onClick={() => navigate('group-chat', { groupId: group.id })}>
+                <GroupAvatar group={group} chars={characters} size={44} />
+                <div className="row-text" style={{ flex: 1 }}>
+                  <div className="fs-body" style={{ color: 'var(--text-primary)' }}>
+                    {group.name}
+                    {group.mode === 'spectate' && <span className="spectate-tag">旁观</span>}
+                  </div>
+                  <div className="hint-text chat-preview">
+                    {last
+                      ? last.type === 'text' ? `${last.senderType === 'user' ? (last.maskName || group.myMask || '我') + '：' : ''}${last.content}` : groupPreview(last)
+                      : group.mode === 'spectate' ? '还没开场，进去让他们自己聊' : '群还静着，点这里破冰'}
+                  </div>
+                </div>
+                {last && <span className="timestamp">{fmtTime(new Date(last.createdAt))}</span>}
               </div>
-              {last && <span className="timestamp">{fmtTime(new Date(last.createdAt))}</span>}
-            </div>
-          ))}
+            )
+          })}
         </div>
-        <button className="btn" style={{ alignSelf: 'center', marginTop: 4 }} onClick={() => navigate('char-create')}>
-          <Icon name="plus" size={15} />
-          新建角色
-        </button>
+        <div className="dual-actions">
+          <button className="btn" onClick={() => navigate('char-create')}>
+            <Icon name="plus" size={15} />
+            新建角色
+          </button>
+          <button className="btn" onClick={() => navigate('group-form')}>
+            <Icon name="users" size={15} />
+            创建群聊
+          </button>
+        </div>
       </div>
     </div>
   )

@@ -61,13 +61,13 @@ export function historyForAPI(messages, cfg) {
   return out
 }
 
-export async function chatComplete(char, messages) {
+export async function chatCompleteWith(char, systemContent, apiMsgs, temperature) {
   const cfg = getState().settings.chatAPI
   if (!apiReady()) throw new Error('NO_API')
   const body = {
     model: cfg.model,
-    temperature: typeof cfg.temperature === 'number' ? cfg.temperature : 0.8,
-    messages: [{ role: 'system', content: buildSystemPrompt(char) }, ...historyForAPI(messages, cfg)],
+    temperature: typeof temperature === 'number' ? temperature : (typeof cfg.temperature === 'number' ? cfg.temperature : 0.8),
+    messages: [{ role: 'system', content: systemContent }, ...apiMsgs],
   }
   const res = await fetch(cfg.baseURL.replace(/\/+$/, '') + '/chat/completions', {
     method: 'POST',
@@ -82,6 +82,18 @@ export async function chatComplete(char, messages) {
   const text = data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content
   if (!text) throw new Error('接口返回为空')
   return String(text).trim()
+}
+
+export async function chatComplete(char, messages) {
+  const cfg = getState().settings.chatAPI
+  return chatCompleteWith(char, buildSystemPrompt(char), historyForAPI(messages, cfg))
+}
+
+export function estimateTokens(str) {
+  if (!str) return 0
+  let cn = 0
+  for (const ch of str) if (ch.charCodeAt(0) > 0x2e7f) cn++
+  return Math.round(cn * 0.7 + (str.length - cn) * 0.25)
 }
 
 export async function chatOneShot(char, instruction, history) {
